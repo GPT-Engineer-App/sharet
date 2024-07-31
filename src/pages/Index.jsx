@@ -44,6 +44,7 @@ const NewShareForm = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [shareType, setShareType] = useState("card");
+  const [permission, setPermission] = useState("view");
 
   const handleCreateShare = () => {
     toast({
@@ -99,21 +100,27 @@ const NewShareForm = () => {
         </div>
       </div>
       <div>
-        <Label htmlFor="permissions">Permissions</Label>
-        <Select>
-          <SelectTrigger id="permissions">
-            <SelectValue placeholder="Select permissions" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="view">View only</SelectItem>
-            <SelectItem value="comment">Comment</SelectItem>
-            <SelectItem value="edit">Edit</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Checkbox id="terms" />
-        <Label htmlFor="terms">I agree to the terms and conditions</Label>
+        <Label>Permissions</Label>
+        <div className="flex space-x-2 mt-2">
+          <Button
+            variant={permission === "view" ? "default" : "outline"}
+            onClick={() => setPermission("view")}
+          >
+            View
+          </Button>
+          <Button
+            variant={permission === "comment" ? "default" : "outline"}
+            onClick={() => setPermission("comment")}
+          >
+            Comment
+          </Button>
+          <Button
+            variant={permission === "edit" ? "default" : "outline"}
+            onClick={() => setPermission("edit")}
+          >
+            Edit
+          </Button>
+        </div>
       </div>
       <Button className="w-full" onClick={handleCreateShare}>
         <Share className="mr-2 h-4 w-4" /> Create Share Link
@@ -196,54 +203,50 @@ const PreviousLinks = () => {
 };
 
 const ApplyFilters = ({ shareType }) => {
-  const [filtersEnabled, setFiltersEnabled] = useState(false);
-
   return (
-    <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Applying filters</h3>
-        <div className="flex items-center space-x-2">
-          <Switch 
-            id="filter-toggle" 
-            checked={filtersEnabled}
-            onCheckedChange={setFiltersEnabled}
-          />
-          <Label htmlFor="filter-toggle">Filters</Label>
-        </div>
-      </div>
-      {filtersEnabled && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="labels">Labels</Label>
-            <Select>
-              <SelectTrigger id="labels">
-                <SelectValue placeholder="Select labels" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="important">Important</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="inprogress">In Progress</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {shareType === 'list' && (
+    <Tabs defaultValue="share" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="share">Share</TabsTrigger>
+        <TabsTrigger value="filters">Filters</TabsTrigger>
+      </TabsList>
+      <TabsContent value="share">
+        {/* Content from NewShareForm will go here */}
+      </TabsContent>
+      <TabsContent value="filters">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="lists">Lists</Label>
+              <Label htmlFor="labels">Labels</Label>
               <Select>
-                <SelectTrigger id="lists">
-                  <SelectValue placeholder="Select lists" />
+                <SelectTrigger id="labels">
+                  <SelectValue placeholder="Select labels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="doing">Doing</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="important">Important</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="inprogress">In Progress</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          )}
+            {shareType === 'list' && (
+              <div>
+                <Label htmlFor="lists">Lists</Label>
+                <Select>
+                  <SelectTrigger id="lists">
+                    <SelectValue placeholder="Select lists" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">To Do</SelectItem>
+                    <SelectItem value="doing">Doing</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 };
 
@@ -303,9 +306,18 @@ const Index = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
-      <TrelloExternalShare setShareType={setShareType} />
+      <div className="container mx-auto p-4">
+        <Card className="w-full max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>External Share</CardTitle>
+            <CardDescription>Securely share specific cards, lists, and attachments with external stakeholders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ApplyFilters shareType={shareType} />
+          </CardContent>
+        </Card>
+      </div>
       <div className="container mx-auto max-w-4xl mt-8">
-        <ApplyFilters shareType={shareType} />
         <AttachmentsSection />
       </div>
     </div>

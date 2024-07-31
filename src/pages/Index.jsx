@@ -46,7 +46,6 @@ const NewShareForm = () => {
   const [shareType, setShareType] = useState("card");
 
   const handleCreateShare = () => {
-    // Simulating share creation
     toast({
       title: "Share link created",
       description: "The share link has been created successfully.",
@@ -55,47 +54,51 @@ const NewShareForm = () => {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="shareType">Share Type</Label>
-        <Select value={shareType} onValueChange={setShareType}>
-          <SelectTrigger id="shareType">
-            <SelectValue placeholder="Select what to share" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="card">Single Card</SelectItem>
-            <SelectItem value="list">List of Cards</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">Name*</Label>
-        <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="secret">Secret</Label>
-        <div className="flex items-center space-x-2">
-          <Input 
-            id="secret" 
-            type={showPassword ? "text" : "password"} 
-            placeholder="Optional password" 
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="shareType">Share Type</Label>
+          <Select value={shareType} onValueChange={setShareType}>
+            <SelectTrigger id="shareType">
+              <SelectValue placeholder="Select what to share" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="card">Single Card</SelectItem>
+              <SelectItem value="list">List of Cards</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="name">Name*</Label>
+          <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="expiryDate">Expiry Date</Label>
-        <div className="flex items-center space-x-2">
-          <Input id="expiryDate" type="date" />
-          <Calendar className="h-4 w-4 text-gray-500" />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="secret">Secret</Label>
+          <div className="flex items-center space-x-2">
+            <Input 
+              id="secret" 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Optional password" 
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="expiryDate">Expiry Date</Label>
+          <div className="flex items-center space-x-2">
+            <Input id="expiryDate" type="date" />
+            <Calendar className="h-4 w-4 text-gray-500" />
+          </div>
         </div>
       </div>
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="permissions">Permissions</Label>
         <Select>
           <SelectTrigger id="permissions">
@@ -196,7 +199,7 @@ const ApplyFilters = ({ shareType }) => {
   const [filtersEnabled, setFiltersEnabled] = useState(false);
 
   return (
-    <div className="space-y-4 mt-8">
+    <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Applying filters</h3>
         <div className="flex items-center space-x-2">
@@ -209,12 +212,12 @@ const ApplyFilters = ({ shareType }) => {
         </div>
       </div>
       {filtersEnabled && (
-        <>
-          <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
             <Label htmlFor="labels">Labels</Label>
             <Select>
               <SelectTrigger id="labels">
-                <SelectValue placeholder="Select one or more labels" />
+                <SelectValue placeholder="Select labels" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="important">Important</SelectItem>
@@ -224,11 +227,11 @@ const ApplyFilters = ({ shareType }) => {
             </Select>
           </div>
           {shareType === 'list' && (
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="lists">Lists</Label>
               <Select>
                 <SelectTrigger id="lists">
-                  <SelectValue placeholder="Select one or more lists" />
+                  <SelectValue placeholder="Select lists" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">To Do</SelectItem>
@@ -238,7 +241,7 @@ const ApplyFilters = ({ shareType }) => {
               </Select>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -252,7 +255,6 @@ const AttachmentsSection = () => {
   ]);
 
   const handleCopyLink = (name) => {
-    // Simulating link copy
     navigator.clipboard.writeText(`https://trello.com/attachment/${name}`);
     toast({
       title: "Link copied",
@@ -269,28 +271,26 @@ const AttachmentsSection = () => {
   };
 
   return (
-    <div className="space-y-4 mt-8">
+    <div className="space-y-4 mt-4">
       <h3 className="text-lg font-semibold">Attachments</h3>
-      {attachments.map((attachment) => (
-        <div key={attachment.id} className="border rounded p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
+      <div className="grid gap-2">
+        {attachments.map((attachment) => (
+          <div key={attachment.id} className="border rounded p-2 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
               <span className="font-medium">{attachment.name}</span>
-              <span className="text-sm text-gray-500 ml-2">{attachment.size}</span>
+              <span className="text-sm text-gray-500">{attachment.size}</span>
             </div>
             <div className="flex space-x-2">
               <Button variant="ghost" size="sm" onClick={() => handleCopyLink(attachment.name)}>
-                <Link className="h-4 w-4 mr-2" />
-                Copy Link
+                <Link className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleDeleteAttachment(attachment.id)}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
       <Button variant="outline" className="w-full">
         <Plus className="mr-2 h-4 w-4" /> Add an attachment
       </Button>

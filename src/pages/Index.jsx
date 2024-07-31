@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-const TrelloExternalShare = () => {
+const TrelloExternalShare = ({ setShareType }) => {
   const [activeTab, setActiveTab] = useState('newShare');
 
   return (
@@ -28,7 +28,7 @@ const TrelloExternalShare = () => {
               <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
             </TabsList>
             <TabsContent value="newShare">
-              <NewShareForm />
+              <NewShareForm setShareType={setShareType} />
             </TabsContent>
             <TabsContent value="previousLinks">
               <PreviousLinks />
@@ -43,6 +43,7 @@ const TrelloExternalShare = () => {
 const NewShareForm = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [shareType, setShareType] = useState("card");
 
   const handleCreateShare = () => {
     // Simulating share creation
@@ -55,8 +56,20 @@ const NewShareForm = () => {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
+        <Label htmlFor="shareType">Share Type</Label>
+        <Select value={shareType} onValueChange={setShareType}>
+          <SelectTrigger id="shareType">
+            <SelectValue placeholder="Select what to share" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="card">Single Card</SelectItem>
+            <SelectItem value="list">List of Cards</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="name">Name*</Label>
-        <Input id="name" placeholder="e.g. Marketing team Q3 plans" />
+        <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="secret">Secret</Label>
@@ -179,7 +192,7 @@ const PreviousLinks = () => {
   );
 };
 
-const ApplyFilters = () => {
+const ApplyFilters = ({ shareType }) => {
   const [filtersEnabled, setFiltersEnabled] = useState(false);
 
   return (
@@ -210,19 +223,21 @@ const ApplyFilters = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="lists">Lists</Label>
-            <Select>
-              <SelectTrigger id="lists">
-                <SelectValue placeholder="Select one or more lists" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todo">To Do</SelectItem>
-                <SelectItem value="doing">Doing</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {shareType === 'list' && (
+            <div className="space-y-2">
+              <Label htmlFor="lists">Lists</Label>
+              <Select>
+                <SelectTrigger id="lists">
+                  <SelectValue placeholder="Select one or more lists" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="doing">Doing</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -284,11 +299,13 @@ const AttachmentsSection = () => {
 };
 
 const Index = () => {
+  const [shareType, setShareType] = useState("card");
+
   return (
     <div className="bg-gray-100 min-h-screen py-8">
-      <TrelloExternalShare />
+      <TrelloExternalShare setShareType={setShareType} />
       <div className="container mx-auto max-w-4xl mt-8">
-        <ApplyFilters />
+        <ApplyFilters shareType={shareType} />
         <AttachmentsSection />
       </div>
     </div>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { TrelloClient } from '@trello/api-client';
 
 const TrelloConnect = ({ onConnect }) => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -10,19 +9,23 @@ const TrelloConnect = ({ onConnect }) => {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const trello = new TrelloClient({
-        key: 'YOUR_TRELLO_API_KEY',
-        token: 'USER_TOKEN', // You'll need to implement OAuth to get this token
-      });
+      const API_KEY = 'YOUR_TRELLO_API_KEY';
+      const TOKEN = 'USER_TOKEN'; // You'll need to implement OAuth to get this token
 
-      const member = await trello.member.get('me');
-      const boards = await trello.member.getBoards('me');
+      const fetchTrelloData = async (url) => {
+        const response = await fetch(`https://api.trello.com/1${url}?key=${API_KEY}&token=${TOKEN}`);
+        if (!response.ok) throw new Error('Failed to fetch Trello data');
+        return response.json();
+      };
+
+      const member = await fetchTrelloData('/members/me');
+      const boards = await fetchTrelloData('/members/me/boards');
 
       // Process the boards to include lists and cards
       const fullBoards = await Promise.all(boards.map(async (board) => {
-        const lists = await trello.board.getLists(board.id);
+        const lists = await fetchTrelloData(`/boards/${board.id}/lists`);
         const fullLists = await Promise.all(lists.map(async (list) => {
-          const cards = await trello.list.getCards(list.id);
+          const cards = await fetchTrelloData(`/lists/${list.id}/cards`);
           return { ...list, cards };
         }));
         return { ...board, lists: fullLists };

@@ -1,19 +1,16 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TrelloConnect from '../components/TrelloConnect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LogOut, Share, Copy, Eye, EyeOff, QrCode, Plus, Trash2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
 import { PaymentDialog } from '../components/PaymentDialog';
 import QRCode from 'qrcode.react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import NewShareForm from '../components/NewShareForm';
+import PreviousLinks from '../components/PreviousLinks';
 
 const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();

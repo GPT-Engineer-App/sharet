@@ -60,9 +60,9 @@ const Introduction = () => {
             <p>We're confident you'll love the simplicity and security of Cardshare. That's why we're offering you 3 free shares to try out our tool. No credit card required!</p>
           </CardContent>
           <CardFooter>
-            <Link to="/app">
-              <Button>Start Sharing Now</Button>
-            </Link>
+            <Button onClick={() => window.location.href = '/app'}>
+              Start Sharing Now
+            </Button>
           </CardFooter>
         </Card>
       </div>

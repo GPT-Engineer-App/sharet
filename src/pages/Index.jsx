@@ -118,63 +118,65 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
-        <div className="w-1/4">
-          <Label htmlFor="shareType">Share Type</Label>
-          <Select value={shareType} onValueChange={setShareType}>
-            <SelectTrigger id="shareType">
-              <SelectValue placeholder="Select what to share" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="card">Single Card</SelectItem>
-              <SelectItem value="list">List of Cards</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-3/4">
-          <div className="flex items-center justify-between mb-2">
-            <Label htmlFor="name">Name*</Label>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="nameToggle" className="text-sm">Select from list</Label>
-              <Switch id="nameToggle" onCheckedChange={setIsSelectFromList} />
-            </div>
-          </div>
-          {isSelectFromList ? (
-            <Select onValueChange={(cardId) => setSelectedCard(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a card" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="shareType">Share Type</Label>
+            <Select value={shareType} onValueChange={setShareType}>
+              <SelectTrigger id="shareType">
+                <SelectValue placeholder="Select what to share" />
               </SelectTrigger>
               <SelectContent>
-                {workspaces.map((workspace) => (
-                  <SelectGroup key={workspace.id}>
-                    <SelectLabel>{workspace.name}</SelectLabel>
-                    {workspace.boards.map((board) => (
-                      <SelectGroup key={board.id}>
-                        <SelectLabel className="pl-4">{board.name}</SelectLabel>
-                        {board.lists.map((list) => (
-                          <SelectGroup key={list.id}>
-                            <SelectLabel className="pl-8">{list.name}</SelectLabel>
-                            {list.cards.map((card) => (
-                              <SelectItem key={card.id} value={card.id} className="pl-12">
-                                {card.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                  </SelectGroup>
-                ))}
+                <SelectItem value="card">Single Card</SelectItem>
+                <SelectItem value="list">List of Cards</SelectItem>
               </SelectContent>
             </Select>
-          ) : (
-            <Input 
-              id="name" 
-              placeholder="Enter card URL" 
-              value={cardUrl}
-              onChange={(e) => setCardUrl(e.target.value)}
-            />
-          )}
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="name">Name*</Label>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="nameToggle" className="text-sm">Select from list</Label>
+                <Switch id="nameToggle" onCheckedChange={setIsSelectFromList} />
+              </div>
+            </div>
+            {isSelectFromList ? (
+              <Select onValueChange={(cardId) => setSelectedCard(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a card" />
+                </SelectTrigger>
+                <SelectContent>
+                  {workspaces.map((workspace) => (
+                    <SelectGroup key={workspace.id}>
+                      <SelectLabel>{workspace.name}</SelectLabel>
+                      {workspace.boards.map((board) => (
+                        <SelectGroup key={board.id}>
+                          <SelectLabel className="pl-4">{board.name}</SelectLabel>
+                          {board.lists.map((list) => (
+                            <SelectGroup key={list.id}>
+                              <SelectLabel className="pl-8">{list.name}</SelectLabel>
+                              {list.cards.map((card) => (
+                                <SelectItem key={card.id} value={card.id} className="pl-12">
+                                  {card.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input 
+                id="name" 
+                placeholder="Enter card URL" 
+                value={cardUrl}
+                onChange={(e) => setCardUrl(e.target.value)}
+              />
+            )}
+          </div>
         </div>
       </div>
       {shareType === "list" && (

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TrelloConnect from '../components/TrelloConnect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Home } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
@@ -11,6 +11,7 @@ import { PaymentDialog } from '../components/PaymentDialog';
 import QRCode from 'qrcode.react';
 import NewShareForm from '../components/NewShareForm';
 import PreviousLinks from '../components/PreviousLinks';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();
@@ -53,9 +54,15 @@ const Index = () => {
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
+        <Link to="/" className="block mb-4">
+          <Button variant="outline">
+            <Home className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
         <Card>
           <CardHeader>
-            <CardTitle>External Share</CardTitle>
+            <CardTitle>Cardshare</CardTitle>
             <div className="flex justify-between items-center mt-2">
               {!trelloData ? (
                 <TrelloConnect onConnect={setTrelloData} />

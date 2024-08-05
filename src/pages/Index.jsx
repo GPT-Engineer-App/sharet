@@ -142,7 +142,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
             </div>
             {isSelectFromList ? (
               <Select onValueChange={(cardId) => setSelectedCard(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId))}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select a card" />
                 </SelectTrigger>
                 <SelectContent>
@@ -174,6 +174,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
                 placeholder="Enter card URL" 
                 value={cardUrl}
                 onChange={(e) => setCardUrl(e.target.value)}
+                className="h-10"
               />
             )}
           </div>
@@ -183,7 +184,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
         <div className="mt-4">
           <Label htmlFor="listSelect">Select List</Label>
           <Select onValueChange={(listId) => setSelectedList(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).find(l => l.id === listId))}>
-            <SelectTrigger id="listSelect">
+            <SelectTrigger id="listSelect" className="h-10">
               <SelectValue placeholder="Select a list" />
             </SelectTrigger>
             <SelectContent>
@@ -214,6 +215,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
               id="secret" 
               type={showPassword ? "text" : "password"} 
               placeholder="Optional password" 
+              className="h-10"
             />
             <Button
               variant="outline"
@@ -226,7 +228,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
         </div>
         <div className="w-1/2">
           <Label htmlFor="expiryDate">Expiry Date</Label>
-          <Input id="expiryDate" type="date" />
+          <Input id="expiryDate" type="date" className="h-10" />
         </div>
       </div>
       <Button className="w-full" onClick={handleCreateShare}>

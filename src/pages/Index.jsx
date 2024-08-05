@@ -5,13 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Share, Plus, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Share, Plus, Copy, Eye, EyeOff, Trash2, QrCode } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
 import { PaymentDialog } from '../components/PaymentDialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import QRCode from 'qrcode.react';
 
 const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();
@@ -19,6 +21,8 @@ const Index = () => {
   const [cardCount, setCardCount] = useState(1);
   const [createdLinks, setCreatedLinks] = useState(0);
   const [trelloData, setTrelloData] = useState(null);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [currentShareLink, setCurrentShareLink] = useState('');
 
   const cost = useMemo(() => {
     if (freeSharesLeft > 0) return 0;
@@ -33,6 +37,11 @@ const Index = () => {
     } else {
       setCreatedLinks(prevLinks => prevLinks + cost);
     }
+  };
+
+  const handleShowQRCode = (link) => {
+    setCurrentShareLink(link);
+    setShowQRCode(true);
   };
 
   return (
@@ -71,20 +80,36 @@ const Index = () => {
                   updateCredits={updateCredits}
                   onCreateLink={handleCreateLink}
                   trelloData={trelloData}
+                  onShowQRCode={handleShowQRCode}
                 />
               </TabsContent>
               <TabsContent value="previousLinks">
-                <PreviousLinks />
+                <PreviousLinks onShowQRCode={handleShowQRCode} />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
+      {showQRCode && (
+        <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>QR Code for Share Link</DialogTitle>
+            </DialogHeader>
+            <div className="flex justify-center">
+              <QRCode value={currentShareLink} size={256} />
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setShowQRCode(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
 
-const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits, onCreateLink, trelloData }) => {
+const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits, onCreateLink, trelloData, onShowQRCode }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
@@ -92,6 +117,8 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
   const [isSelectFromList, setIsSelectFromList] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [cardUrl, setCardUrl] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [password, setPassword] = useState('');
 
   const calculateCost = () => {
     if (freeSharesLeft > 0) return 0;
@@ -104,6 +131,16 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
       toast({
         title: "Insufficient credits",
         description: "Please purchase more credits to create this share.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate expiry date
+    if (expiryDate && new Date(expiryDate) <= new Date()) {
+      toast({
+        title: "Invalid expiry date",
+        description: "Please select a future date for expiry.",
         variant: "destructive",
       });
       return;
@@ -229,6 +266,8 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
               type={showPassword ? "text" : "password"} 
               placeholder="Optional password" 
               className="h-10"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <Button
               variant="outline"
@@ -241,7 +280,13 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
         </div>
         <div className="w-1/2">
           <Label htmlFor="expiryDate">Expiry Date</Label>
-          <Input id="expiryDate" type="date" className="h-10" />
+          <Input 
+            id="expiryDate" 
+            type="date" 
+            className="h-10" 
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+          />
         </div>
       </div>
       <Button className="w-full" onClick={handleCreateShare}>
@@ -253,25 +298,94 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
           {generatedUrls.cardUrl && (
             <div className="flex items-center justify-between">
               <span className="truncate">{generatedUrls.cardUrl}</span>
-              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.cardUrl)}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              <div className="flex space-x-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.cardUrl)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy link</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => onShowQRCode(generatedUrls.cardUrl)}>
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show QR Code</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           )}
           {generatedUrls.listUrl && (
             <div className="flex items-center justify-between">
               <span className="truncate">List URL: {generatedUrls.listUrl}</span>
-              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.listUrl)}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              <div className="flex space-x-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.listUrl)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy link</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => onShowQRCode(generatedUrls.listUrl)}>
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show QR Code</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           )}
           {generatedUrls.cardUrls && generatedUrls.cardUrls.map((card, index) => (
             <div key={index} className="flex items-center justify-between">
               <span className="truncate">{card.name}: {card.url}</span>
-              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(card.url)}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              <div className="flex space-x-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(card.url)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy link</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => onShowQRCode(card.url)}>
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show QR Code</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           ))}
         </div>
@@ -280,7 +394,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
   );
 };
 
-const PreviousLinks = () => {
+const PreviousLinks = ({ onShowQRCode }) => {
   const { toast } = useToast();
   const [links, setLinks] = useState([]);
 
@@ -300,6 +414,17 @@ const PreviousLinks = () => {
     });
   };
 
+  useEffect(() => {
+    // Fetch previous links from localStorage or API
+    const storedLinks = JSON.parse(localStorage.getItem('previousLinks') || '[]');
+    setLinks(storedLinks);
+  }, []);
+
+  useEffect(() => {
+    // Save links to localStorage whenever they change
+    localStorage.setItem('previousLinks', JSON.stringify(links));
+  }, [links]);
+
   return (
     <div className="space-y-4">
       {links.length > 0 ? (
@@ -310,14 +435,44 @@ const PreviousLinks = () => {
               <p className="text-sm text-muted-foreground">Expires: {link.expiry}</p>
             </div>
             <div className="flex space-x-2">
-              <Button variant="ghost" size="sm" onClick={() => handleCopyLink(link.url)}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => handleCopyLink(link.url)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy link</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => onShowQRCode(link.url)}>
+                      <QrCode className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Show QR Code</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete link</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>

@@ -1,21 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Share, Plus, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Share, Plus, Copy, Eye, EyeOff, Trash2, CreditCard } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useCredits } from '../hooks/useCredits';
+import { PaymentDialog } from '../components/PaymentDialog';
 
 const Index = () => {
+  const { credits, freeSharesLeft, updateCredits } = useCredits();
+
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>External Share</CardTitle>
+            <div className="flex justify-between items-center mt-2">
+              <span>Credits: {credits.toFixed(2)}</span>
+              <span>Free shares left: {freeSharesLeft}</span>
+              <PaymentDialog onPaymentSuccess={updateCredits} />
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="newShare">
@@ -41,8 +50,34 @@ const NewShareForm = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [shareType, setShareType] = useState("card");
+  const [cardCount, setCardCount] = useState(1);
+  const { credits, freeSharesLeft, updateCredits } = useCredits();
+
+  const calculateCost = () => {
+    if (freeSharesLeft > 0) return 0;
+    const cardCost = shareType === "card" ? 1 : Math.max(1, cardCount - 1);
+    return cardCost * 0.05;
+  };
 
   const handleCreateShare = () => {
+    const cost = calculateCost();
+    if (cost > credits) {
+      toast({
+        title: "Insufficient credits",
+        description: "Please purchase more credits to create this share.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Here you would typically call an API to create the share
+    // For now, we'll just update the credits and free shares
+    if (freeSharesLeft > 0) {
+      updateCredits(credits, freeSharesLeft - 1);
+    } else {
+      updateCredits(credits - cost, freeSharesLeft);
+    }
+
     toast({
       title: "Share link created",
       description: "The share link has been created successfully.",
@@ -68,6 +103,21 @@ const NewShareForm = () => {
           <Label htmlFor="name">Name*</Label>
           <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
         </div>
+      </div>
+      {shareType === "list" && (
+        <div className="mt-4">
+          <Label htmlFor="cardCount">Number of Cards in List</Label>
+          <Input
+            id="cardCount"
+            type="number"
+            min="1"
+            value={cardCount}
+            onChange={(e) => setCardCount(parseInt(e.target.value) || 1)}
+          />
+        </div>
+      )}
+      <div className="mt-4">
+        <p>Cost: {calculateCost().toFixed(2)} credits</p>
       </div>
       <div className="flex space-x-4">
         <div className="w-1/2">

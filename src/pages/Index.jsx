@@ -86,7 +86,7 @@ const NewShareForm = () => {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="shareType">Share Type</Label>
           <Select value={shareType} onValueChange={setShareType}>

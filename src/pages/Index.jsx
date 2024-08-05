@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Share, Plus, Copy, Eye, EyeOff, Trash2, QrCode } from "lucide-react";
+import { Share, Plus, Copy, Eye, EyeOff, Trash2, QrCode, LogOut } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
@@ -23,6 +23,7 @@ const Index = () => {
   const [trelloData, setTrelloData] = useState(null);
   const [showQRCode, setShowQRCode] = useState(false);
   const [currentShareLink, setCurrentShareLink] = useState('');
+  const { toast } = useToast();
 
   const cost = useMemo(() => {
     if (freeSharesLeft > 0) return 0;
@@ -44,6 +45,14 @@ const Index = () => {
     setShowQRCode(true);
   };
 
+  const handleDisconnect = () => {
+    setTrelloData(null);
+    toast({
+      title: "Disconnected from Trello",
+      description: "You have been successfully disconnected from your Trello account.",
+    });
+  };
+
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
@@ -51,7 +60,17 @@ const Index = () => {
           <CardHeader>
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
-              {!trelloData && <TrelloConnect onConnect={setTrelloData} />}
+              {!trelloData ? (
+                <TrelloConnect onConnect={setTrelloData} />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span>Connected as {trelloData.member.fullName}</span>
+                  <Button variant="outline" size="sm" onClick={handleDisconnect}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Disconnect
+                  </Button>
+                </div>
+              )}
               {displayCredits > 0 ? (
                 <span>Credits: {displayCredits.toFixed(2)} (-{createdLinks})</span>
               ) : (
@@ -64,29 +83,33 @@ const Index = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="newShare">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="newShare">New Share</TabsTrigger>
-                <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
-              </TabsList>
-              <TabsContent value="newShare">
-                <NewShareForm
-                  shareType={shareType}
-                  setShareType={setShareType}
-                  cardCount={cardCount}
-                  setCardCount={setCardCount}
-                  credits={displayCredits}
-                  freeSharesLeft={freeSharesLeft}
-                  updateCredits={updateCredits}
-                  onCreateLink={handleCreateLink}
-                  trelloData={trelloData}
-                  onShowQRCode={handleShowQRCode}
-                />
-              </TabsContent>
-              <TabsContent value="previousLinks">
-                <PreviousLinks onShowQRCode={handleShowQRCode} />
-              </TabsContent>
-            </Tabs>
+            {trelloData ? (
+              <Tabs defaultValue="newShare">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="newShare">New Share</TabsTrigger>
+                  <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
+                </TabsList>
+                <TabsContent value="newShare">
+                  <NewShareForm
+                    shareType={shareType}
+                    setShareType={setShareType}
+                    cardCount={cardCount}
+                    setCardCount={setCardCount}
+                    credits={displayCredits}
+                    freeSharesLeft={freeSharesLeft}
+                    updateCredits={updateCredits}
+                    onCreateLink={handleCreateLink}
+                    trelloData={trelloData}
+                    onShowQRCode={handleShowQRCode}
+                  />
+                </TabsContent>
+                <TabsContent value="previousLinks">
+                  <PreviousLinks onShowQRCode={handleShowQRCode} />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <p className="text-center py-4">Connect to Trello to start creating share links.</p>
+            )}
           </CardContent>
         </Card>
       </div>

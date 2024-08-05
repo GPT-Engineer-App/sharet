@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard } from "lucide-react";
 
+const PAYMENT_LINKS = {
+  '10': 'https://wise.com/pay/r/iQfsdutuWdOnBVo',
+  '50': 'https://wise.com/pay/r/g2GAvZSBGkc2DrU',
+  '100': 'https://wise.com/pay/r/8ZGYGFbHAxpDikw',
+};
+
 export const PaymentDialog = ({ onPaymentSuccess }) => {
   const [bundle, setBundle] = useState('10');
 
   const handlePayment = () => {
-    // Here you would integrate with a payment processor
-    // For now, we'll just simulate a successful payment
+    window.open(PAYMENT_LINKS[bundle], '_blank');
+    // Note: In a real-world scenario, you'd want to verify the payment was successful
+    // before adding credits. This might involve a webhook or checking a payment status API.
     const creditsToAdd = parseInt(bundle);
     onPaymentSuccess((prevCredits) => prevCredits + creditsToAdd);
   };

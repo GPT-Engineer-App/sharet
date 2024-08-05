@@ -123,7 +123,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
           <div>
             <Label htmlFor="shareType">Share Type</Label>
             <Select value={shareType} onValueChange={setShareType}>
-              <SelectTrigger id="shareType">
+              <SelectTrigger id="shareType" className="h-10">
                 <SelectValue placeholder="Select what to share" />
               </SelectTrigger>
               <SelectContent>

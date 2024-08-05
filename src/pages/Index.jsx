@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { workspaces } from '../mockData';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ const Index = () => {
   );
 };
 
-const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
+const NewShareForm = ({ shareType, setShareType }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const { credits, freeSharesLeft, updateCredits } = useCredits();
@@ -73,6 +74,9 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
     if (freeSharesLeft > 0) return 0;
     return shareType === "card" ? 1 : Math.max(1, cardCount - 1);
   };
+
+  const [selectedList, setSelectedList] = useState(null);
+  const [generatedUrls, setGeneratedUrls] = useState(null);
 
   const handleCreateShare = () => {
     const cost = calculateCost();
@@ -86,7 +90,20 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
     }
 
     // Here you would typically call an API to create the share
-    // For now, we'll just update the credits and free shares
+    // For now, we'll simulate generating URLs
+    if (shareType === "card") {
+      const cardUrl = `https://example.com/share/card/${Date.now()}`;
+      setGeneratedUrls({ cardUrl });
+    } else if (shareType === "list" && selectedList) {
+      const listUrl = `https://example.com/share/list/${selectedList.id}`;
+      const cardUrls = selectedList.cards.map(card => ({
+        name: card.name,
+        url: `https://example.com/share/card/${card.id}`
+      }));
+      setGeneratedUrls({ listUrl, cardUrls });
+    }
+
+    // Update credits
     if (freeSharesLeft > 0) {
       updateCredits(credits, freeSharesLeft - 1);
     } else {
@@ -94,9 +111,17 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
     }
 
     toast({
-      title: "Share link created",
-      description: "The share link has been created successfully.",
+      title: "Share link(s) created",
+      description: "The share link(s) have been created successfully.",
     });
+  };
+
+  const handleListSelect = (listId) => {
+    const selected = workspaces
+      .flatMap(w => w.boards)
+      .flatMap(b => b.lists)
+      .find(l => l.id === listId);
+    setSelectedList(selected);
   };
 
   return (
@@ -121,14 +146,29 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
       </div>
       {shareType === "list" && (
         <div className="mt-4">
-          <Label htmlFor="cardCount">Number of Cards in List</Label>
-          <Input
-            id="cardCount"
-            type="number"
-            min="1"
-            value={cardCount}
-            onChange={(e) => setCardCount(parseInt(e.target.value) || 1)}
-          />
+          <Label htmlFor="listSelect">Select List</Label>
+          <Select onValueChange={(value) => console.log("Selected list:", value)}>
+            <SelectTrigger id="listSelect">
+              <SelectValue placeholder="Select a list" />
+            </SelectTrigger>
+            <SelectContent>
+              {workspaces.map((workspace) => (
+                <SelectGroup key={workspace.id}>
+                  <SelectLabel>{workspace.name}</SelectLabel>
+                  {workspace.boards.map((board) => (
+                    <SelectGroup key={board.id}>
+                      <SelectLabel className="pl-4">{board.name}</SelectLabel>
+                      {board.lists.map((list) => (
+                        <SelectItem key={list.id} value={list.id} className="pl-8">
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
       <div className="flex space-x-4">
@@ -157,6 +197,35 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
       <Button className="w-full" onClick={handleCreateShare}>
         <Share className="mr-2 h-4 w-4" /> Create Share Link
       </Button>
+      {generatedUrls && (
+        <div className="mt-4 space-y-2">
+          <h3 className="font-semibold">Generated Share Links:</h3>
+          {generatedUrls.cardUrl && (
+            <div className="flex items-center justify-between">
+              <span className="truncate">{generatedUrls.cardUrl}</span>
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.cardUrl)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          {generatedUrls.listUrl && (
+            <div className="flex items-center justify-between">
+              <span className="truncate">List URL: {generatedUrls.listUrl}</span>
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(generatedUrls.listUrl)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          {generatedUrls.cardUrls && generatedUrls.cardUrls.map((card, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <span className="truncate">{card.name}: {card.url}</span>
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(card.url)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

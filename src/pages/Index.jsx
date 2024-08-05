@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import { workspaces } from '../mockData';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import TrelloConnect from '../components/TrelloConnect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ const Index = () => {
   const [shareType, setShareType] = useState("card");
   const [cardCount, setCardCount] = useState(1);
   const [createdLinks, setCreatedLinks] = useState(0);
+  const [trelloData, setTrelloData] = useState(null);
 
   const cost = useMemo(() => {
     if (freeSharesLeft > 0) return 0;
@@ -41,6 +42,7 @@ const Index = () => {
           <CardHeader>
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
+              {!trelloData && <TrelloConnect onConnect={setTrelloData} />}
               {displayCredits > 0 ? (
                 <span>Credits: {displayCredits.toFixed(2)} (-{createdLinks})</span>
               ) : (
@@ -68,6 +70,7 @@ const Index = () => {
                   freeSharesLeft={freeSharesLeft}
                   updateCredits={updateCredits}
                   onCreateLink={handleCreateLink}
+                  trelloData={trelloData}
                 />
               </TabsContent>
               <TabsContent value="previousLinks">
@@ -81,7 +84,7 @@ const Index = () => {
   );
 };
 
-const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits, onCreateLink }) => {
+const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits, onCreateLink, trelloData }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
@@ -153,31 +156,30 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
               </div>
             </div>
             {isSelectFromList ? (
-              <Select onValueChange={(cardId) => setSelectedCard(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId))}>
+              <Select onValueChange={(cardId) => setSelectedCard(trelloData ? trelloData.boards.flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId) : null)}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select a card" />
                 </SelectTrigger>
                 <SelectContent>
-                  {workspaces.map((workspace) => (
-                    <SelectGroup key={workspace.id}>
-                      <SelectLabel>{workspace.name}</SelectLabel>
-                      {workspace.boards.map((board) => (
-                        <SelectGroup key={board.id}>
-                          <SelectLabel className="pl-4">{board.name}</SelectLabel>
-                          {board.lists.map((list) => (
-                            <SelectGroup key={list.id}>
-                              <SelectLabel className="pl-8">{list.name}</SelectLabel>
-                              {list.cards.map((card) => (
-                                <SelectItem key={card.id} value={card.id} className="pl-12">
-                                  {card.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ))}
-                        </SelectGroup>
-                      ))}
-                    </SelectGroup>
-                  ))}
+                  {trelloData ? (
+                    trelloData.boards.map((board) => (
+                      <SelectGroup key={board.id}>
+                        <SelectLabel>{board.name}</SelectLabel>
+                        {board.lists.map((list) => (
+                          <SelectGroup key={list.id}>
+                            <SelectLabel className="pl-4">{list.name}</SelectLabel>
+                            {list.cards.map((card) => (
+                              <SelectItem key={card.id} value={card.id} className="pl-8">
+                                {card.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectGroup>
+                    ))
+                  ) : (
+                    <SelectItem value="connect">Connect to Trello to see cards</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             ) : (
@@ -195,26 +197,25 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
       {shareType === "list" && (
         <div className="mt-4">
           <Label htmlFor="listSelect">Select List</Label>
-          <Select onValueChange={(listId) => setSelectedList(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).find(l => l.id === listId))}>
+          <Select onValueChange={(listId) => setSelectedList(trelloData ? trelloData.boards.flatMap(b => b.lists).find(l => l.id === listId) : null)}>
             <SelectTrigger id="listSelect" className="h-10">
               <SelectValue placeholder="Select a list" />
             </SelectTrigger>
             <SelectContent>
-              {workspaces.map((workspace) => (
-                <SelectGroup key={workspace.id}>
-                  <SelectLabel>{workspace.name}</SelectLabel>
-                  {workspace.boards.map((board) => (
-                    <SelectGroup key={board.id}>
-                      <SelectLabel className="pl-4">{board.name}</SelectLabel>
-                      {board.lists.map((list) => (
-                        <SelectItem key={list.id} value={list.id} className="pl-8">
-                          {list.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectGroup>
-              ))}
+              {trelloData ? (
+                trelloData.boards.map((board) => (
+                  <SelectGroup key={board.id}>
+                    <SelectLabel>{board.name}</SelectLabel>
+                    {board.lists.map((list) => (
+                      <SelectItem key={list.id} value={list.id}>
+                        {list.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))
+              ) : (
+                <SelectItem value="connect">Connect to Trello to see lists</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>

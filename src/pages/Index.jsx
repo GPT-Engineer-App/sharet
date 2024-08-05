@@ -22,7 +22,7 @@ const Index = () => {
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
               <span>Credits: {credits.toFixed(2)}</span>
-              <span>Free shares left: {freeSharesLeft}</span>
+              <span>Free shares left: {freeSharesLeft} | Cost per share: 0.05 credits</span>
               <PaymentDialog onPaymentSuccess={updateCredits} />
             </div>
           </CardHeader>
@@ -86,8 +86,8 @@ const NewShareForm = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex space-x-4">
-        <div className="w-3/10">
+      <div className="space-y-4">
+        <div>
           <Label htmlFor="shareType">Share Type</Label>
           <Select value={shareType} onValueChange={setShareType}>
             <SelectTrigger id="shareType">
@@ -99,7 +99,7 @@ const NewShareForm = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-7/10">
+        <div>
           <Label htmlFor="name">Name*</Label>
           <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
         </div>

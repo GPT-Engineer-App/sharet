@@ -22,7 +22,7 @@ const Index = () => {
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
               <span>Credits: {credits.toFixed(2)}</span>
-              <span>Free shares left: {freeSharesLeft} | Cost per share: 0.05 credits</span>
+              <span>Free shares left: {freeSharesLeft}</span>
               <PaymentDialog onPaymentSuccess={updateCredits} />
             </div>
           </CardHeader>
@@ -116,8 +116,9 @@ const NewShareForm = () => {
           />
         </div>
       )}
-      <div className="mt-4">
+      <div className="mt-4 flex justify-between items-center">
         <p>Cost: {calculateCost().toFixed(2)} credits</p>
+        {freeSharesLeft > 0 && <p>Free shares left: {freeSharesLeft}</p>}
       </div>
       <div className="flex space-x-4">
         <div className="w-1/2">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,15 @@ import { PaymentDialog } from '../components/PaymentDialog';
 
 const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();
+  const [shareType, setShareType] = useState("card");
+  const [cardCount, setCardCount] = useState(1);
+
+  const cost = useMemo(() => {
+    if (freeSharesLeft > 0) return 0;
+    return shareType === "card" ? 1 : Math.max(1, cardCount - 1);
+  }, [shareType, cardCount, freeSharesLeft]);
+
+  const displayCredits = credits - cost;
 
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
@@ -21,9 +30,13 @@ const Index = () => {
           <CardHeader>
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
-              <span>Credits: {credits.toFixed(2)}</span>
+              {displayCredits > 0 ? (
+                <span>Credits: {credits.toFixed(2)} (-{cost})</span>
+              ) : (
+                <PaymentDialog onPaymentSuccess={updateCredits} />
+              )}
               <span>Free shares left: {freeSharesLeft}</span>
-              <PaymentDialog onPaymentSuccess={updateCredits} />
+              {displayCredits > 0 && <PaymentDialog onPaymentSuccess={updateCredits} />}
             </div>
           </CardHeader>
           <CardContent>
@@ -33,7 +46,12 @@ const Index = () => {
                 <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
               </TabsList>
               <TabsContent value="newShare">
-                <NewShareForm />
+                <NewShareForm
+                  shareType={shareType}
+                  setShareType={setShareType}
+                  cardCount={cardCount}
+                  setCardCount={setCardCount}
+                />
               </TabsContent>
               <TabsContent value="previousLinks">
                 <PreviousLinks />
@@ -46,17 +64,14 @@ const Index = () => {
   );
 };
 
-const NewShareForm = () => {
+const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
-  const [shareType, setShareType] = useState("card");
-  const [cardCount, setCardCount] = useState(1);
   const { credits, freeSharesLeft, updateCredits } = useCredits();
 
   const calculateCost = () => {
     if (freeSharesLeft > 0) return 0;
-    const cardCost = shareType === "card" ? 1 : Math.max(1, cardCount - 1);
-    return cardCost * 0.05;
+    return shareType === "card" ? 1 : Math.max(1, cardCount - 1);
   };
 
   const handleCreateShare = () => {

@@ -116,9 +116,6 @@ const NewShareForm = () => {
           />
         </div>
       )}
-      <div className="mt-4">
-        <p>Cost: {calculateCost().toFixed(2)} credits</p>
-      </div>
       <div className="flex space-x-4">
         <div className="w-1/2">
           <Label htmlFor="secret">Secret</Label>

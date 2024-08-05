@@ -1,42 +1,100 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Share, Plus, Link, Calendar, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Share, Plus, Link, Calendar, Copy, Eye, EyeOff, Trash2, BarChart3, Users, DollarSign } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const TrelloExternalShare = ({ setShareType }) => {
-  const [activeTab, setActiveTab] = useState('newShare');
+const Index = () => {
+  const [shareType, setShareType] = useState("card");
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>External Share</CardTitle>
-          <CardDescription>Securely share specific cards, lists, and attachments with external stakeholders</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="newShare">New Share</TabsTrigger>
-              <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
-            </TabsList>
-            <TabsContent value="newShare">
-              <NewShareForm setShareType={setShareType} />
-            </TabsContent>
-            <TabsContent value="previousLinks">
-              <PreviousLinks />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+    <div className="bg-background text-foreground min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold">Business Overview</h1>
+        </header>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StatCard title="Total Customers" value="22,343" icon={<Users className="h-6 w-6" />} change={3.5} />
+          <StatCard title="Total Revenue" value="$32,234" icon={<DollarSign className="h-6 w-6" />} change={-2.4} />
+          <StatCard title="Active Users" value="12,537" icon={<BarChart3 className="h-6 w-6" />} change={1.8} />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="col-span-2">
+            <CardHeader>
+              <CardTitle>Sales Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SalesChart />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>External Share</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="newShare">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="newShare">New Share</TabsTrigger>
+                  <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
+                </TabsList>
+                <TabsContent value="newShare">
+                  <NewShareForm setShareType={setShareType} />
+                </TabsContent>
+                <TabsContent value="previousLinks">
+                  <PreviousLinks />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
+  );
+};
+
+const StatCard = ({ title, value, icon, change }) => (
+  <Card>
+    <CardContent className="flex items-center justify-between p-6">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <h2 className="text-2xl font-bold">{value}</h2>
+        <p className={`text-sm ${change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          {change >= 0 ? '+' : ''}{change}%
+        </p>
+      </div>
+      <div className="p-4 bg-primary/10 rounded-full">
+        {icon}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const SalesChart = () => {
+  const data = [
+    { name: 'Jan', sales: 4000 },
+    { name: 'Feb', sales: 3000 },
+    { name: 'Mar', sales: 5000 },
+    { name: 'Apr', sales: 4500 },
+    { name: 'May', sales: 6000 },
+    { name: 'Jun', sales: 5500 },
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="sales" fill="#3b82f6" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
@@ -44,7 +102,6 @@ const NewShareForm = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [shareType, setShareType] = useState("card");
-  const [permission, setPermission] = useState("view");
 
   const handleCreateShare = () => {
     toast({
@@ -55,71 +112,44 @@ const NewShareForm = () => {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="shareType">Share Type</Label>
-          <Select value={shareType} onValueChange={setShareType}>
-            <SelectTrigger id="shareType">
-              <SelectValue placeholder="Select what to share" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="card">Single Card</SelectItem>
-              <SelectItem value="list">List of Cards</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="name">Name*</Label>
-          <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
-        </div>
+      <div>
+        <Label htmlFor="shareType">Share Type</Label>
+        <Select value={shareType} onValueChange={setShareType}>
+          <SelectTrigger id="shareType">
+            <SelectValue placeholder="Select what to share" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="card">Single Card</SelectItem>
+            <SelectItem value="list">List of Cards</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="secret">Secret</Label>
-          <div className="flex items-center space-x-2">
-            <Input 
-              id="secret" 
-              type={showPassword ? "text" : "password"} 
-              placeholder="Optional password" 
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="expiryDate">Expiry Date</Label>
-          <div className="flex items-center space-x-2">
-            <Input id="expiryDate" type="date" />
-            <Calendar className="h-4 w-4 text-gray-500" />
-          </div>
+      <div>
+        <Label htmlFor="name">Name*</Label>
+        <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
+      </div>
+      <div>
+        <Label htmlFor="secret">Secret</Label>
+        <div className="flex items-center space-x-2">
+          <Input 
+            id="secret" 
+            type={showPassword ? "text" : "password"} 
+            placeholder="Optional password" 
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
       <div>
-        <Label>Permissions</Label>
-        <div className="flex space-x-2 mt-2">
-          <Button
-            variant={permission === "view" ? "default" : "outline"}
-            onClick={() => setPermission("view")}
-          >
-            View
-          </Button>
-          <Button
-            variant={permission === "comment" ? "default" : "outline"}
-            onClick={() => setPermission("comment")}
-          >
-            Comment
-          </Button>
-          <Button
-            variant={permission === "edit" ? "default" : "outline"}
-            onClick={() => setPermission("edit")}
-          >
-            Edit
-          </Button>
+        <Label htmlFor="expiryDate">Expiry Date</Label>
+        <div className="flex items-center space-x-2">
+          <Input id="expiryDate" type="date" />
+          <Calendar className="h-4 w-4 text-muted-foreground" />
         </div>
       </div>
       <Button className="w-full" onClick={handleCreateShare}>
@@ -156,170 +186,42 @@ const PreviousLinks = () => {
     <div className="space-y-4">
       {links.length > 0 ? (
         links.map((link) => (
-          <Card key={link.id}>
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{link.name}</h3>
-                  <p className="text-sm text-gray-500">Expires: {link.expiry}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleCopyLink(link.url)}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy
+          <div key={link.id} className="flex justify-between items-center p-2 bg-secondary rounded-md">
+            <div>
+              <h3 className="font-semibold">{link.name}</h3>
+              <p className="text-sm text-muted-foreground">Expires: {link.expiry}</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="ghost" size="sm" onClick={() => handleCopyLink(link.url)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Are you sure you want to delete this share link?</DialogTitle>
-                        <DialogDescription>
-                          This action cannot be undone. The link will no longer be accessible.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => handleDeleteLink(link.id)}>Yes, delete it</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Are you sure you want to delete this share link?</DialogTitle>
+                    <DialogDescription>
+                      This action cannot be undone. The link will no longer be accessible.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="destructive" onClick={() => handleDeleteLink(link.id)}>Yes, delete it</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
         ))
       ) : (
-        <p>You have no previous share links.</p>
+        <p className="text-muted-foreground">You have no previous share links.</p>
       )}
       <Button variant="outline" className="w-full">
         <Plus className="mr-2 h-4 w-4" /> Create New Share Link
       </Button>
-    </div>
-  );
-};
-
-const ApplyFilters = ({ shareType }) => {
-  return (
-    <Tabs defaultValue="share" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="share">Share</TabsTrigger>
-        <TabsTrigger value="filters">Filters</TabsTrigger>
-      </TabsList>
-      <TabsContent value="share">
-        {/* Content from NewShareForm will go here */}
-      </TabsContent>
-      <TabsContent value="filters">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="labels">Labels</Label>
-              <Select>
-                <SelectTrigger id="labels">
-                  <SelectValue placeholder="Select labels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="important">Important</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="inprogress">In Progress</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {shareType === 'list' && (
-              <div>
-                <Label htmlFor="lists">Lists</Label>
-                <Select>
-                  <SelectTrigger id="lists">
-                    <SelectValue placeholder="Select lists" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todo">To Do</SelectItem>
-                    <SelectItem value="doing">Doing</SelectItem>
-                    <SelectItem value="done">Done</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </div>
-      </TabsContent>
-    </Tabs>
-  );
-};
-
-const AttachmentsSection = () => {
-  const { toast } = useToast();
-  const [attachments, setAttachments] = useState([
-    { id: 1, name: "example-attachment.pdf", size: "2.5 MB" },
-    { id: 2, name: "project-plan.docx", size: "1.8 MB" },
-  ]);
-
-  const handleCopyLink = (name) => {
-    navigator.clipboard.writeText(`https://trello.com/attachment/${name}`);
-    toast({
-      title: "Link copied",
-      description: "The attachment link has been copied to your clipboard.",
-    });
-  };
-
-  const handleDeleteAttachment = (id) => {
-    setAttachments(attachments.filter(attachment => attachment.id !== id));
-    toast({
-      title: "Attachment deleted",
-      description: "The attachment has been removed from the share.",
-    });
-  };
-
-  return (
-    <div className="space-y-4 mt-4">
-      <h3 className="text-lg font-semibold">Attachments</h3>
-      <div className="grid gap-2">
-        {attachments.map((attachment) => (
-          <div key={attachment.id} className="border rounded p-2 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="font-medium">{attachment.name}</span>
-              <span className="text-sm text-gray-500">{attachment.size}</span>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="ghost" size="sm" onClick={() => handleCopyLink(attachment.name)}>
-                <Link className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDeleteAttachment(attachment.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <Button variant="outline" className="w-full">
-        <Plus className="mr-2 h-4 w-4" /> Add an attachment
-      </Button>
-    </div>
-  );
-};
-
-const Index = () => {
-  const [shareType, setShareType] = useState("card");
-
-  return (
-    <div className="bg-gray-100 min-h-screen py-8">
-      <div className="container mx-auto p-4">
-        <Card className="w-full max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle>External Share</CardTitle>
-            <CardDescription>Securely share specific cards, lists, and attachments with external stakeholders</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ApplyFilters shareType={shareType} />
-          </CardContent>
-        </Card>
-      </div>
-      <div className="container mx-auto max-w-4xl mt-8">
-        <AttachmentsSection />
-      </div>
     </div>
   );
 };

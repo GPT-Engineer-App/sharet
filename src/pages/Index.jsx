@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Share, Plus, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
@@ -69,6 +70,9 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
   const [showPassword, setShowPassword] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
   const [generatedUrls, setGeneratedUrls] = useState(null);
+  const [isSelectFromList, setIsSelectFromList] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [cardUrl, setCardUrl] = useState('');
 
   const calculateCost = () => {
     if (freeSharesLeft > 0) return 0;
@@ -128,8 +132,49 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
           </Select>
         </div>
         <div className="w-3/4">
-          <Label htmlFor="name">Name*</Label>
-          <Input id="name" placeholder={`e.g. ${shareType === 'card' ? 'Marketing campaign idea' : 'Q3 Marketing plans'}`} />
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="name">Name*</Label>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="nameToggle" className="text-sm">Select from list</Label>
+              <Switch id="nameToggle" onCheckedChange={setIsSelectFromList} />
+            </div>
+          </div>
+          {isSelectFromList ? (
+            <Select onValueChange={(cardId) => setSelectedCard(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).flatMap(l => l.cards).find(c => c.id === cardId))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a card" />
+              </SelectTrigger>
+              <SelectContent>
+                {workspaces.map((workspace) => (
+                  <SelectGroup key={workspace.id}>
+                    <SelectLabel>{workspace.name}</SelectLabel>
+                    {workspace.boards.map((board) => (
+                      <SelectGroup key={board.id}>
+                        <SelectLabel className="pl-4">{board.name}</SelectLabel>
+                        {board.lists.map((list) => (
+                          <SelectGroup key={list.id}>
+                            <SelectLabel className="pl-8">{list.name}</SelectLabel>
+                            {list.cards.map((card) => (
+                              <SelectItem key={card.id} value={card.id} className="pl-12">
+                                {card.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input 
+              id="name" 
+              placeholder="Enter card URL" 
+              value={cardUrl}
+              onChange={(e) => setCardUrl(e.target.value)}
+            />
+          )}
         </div>
       </div>
       {shareType === "list" && (

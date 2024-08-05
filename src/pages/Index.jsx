@@ -17,13 +17,22 @@ const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();
   const [shareType, setShareType] = useState("card");
   const [cardCount, setCardCount] = useState(1);
+  const [createdLinks, setCreatedLinks] = useState(0);
 
   const cost = useMemo(() => {
     if (freeSharesLeft > 0) return 0;
     return shareType === "card" ? 1 : Math.max(1, cardCount - 1);
   }, [shareType, cardCount, freeSharesLeft]);
 
-  const displayCredits = credits - cost;
+  const displayCredits = credits - createdLinks;
+
+  const handleCreateLink = () => {
+    if (freeSharesLeft > 0) {
+      updateCredits(credits, freeSharesLeft - 1);
+    } else {
+      setCreatedLinks(prevLinks => prevLinks + cost);
+    }
+  };
 
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
@@ -32,9 +41,15 @@ const Index = () => {
           <CardHeader>
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
-              <span>Credits: {credits.toFixed(2)} (-{cost})</span>
+              {displayCredits > 0 ? (
+                <span>Credits: {displayCredits.toFixed(2)} (-{createdLinks})</span>
+              ) : (
+                <PaymentDialog onPaymentSuccess={(newCredits) => {
+                  updateCredits(newCredits, freeSharesLeft);
+                  setCreatedLinks(0);
+                }} />
+              )}
               <span>Free shares left: {freeSharesLeft}</span>
-              <PaymentDialog onPaymentSuccess={(newCredits) => updateCredits(newCredits, freeSharesLeft)} />
             </div>
           </CardHeader>
           <CardContent>
@@ -49,9 +64,10 @@ const Index = () => {
                   setShareType={setShareType}
                   cardCount={cardCount}
                   setCardCount={setCardCount}
-                  credits={credits}
+                  credits={displayCredits}
                   freeSharesLeft={freeSharesLeft}
                   updateCredits={updateCredits}
+                  onCreateLink={handleCreateLink}
                 />
               </TabsContent>
               <TabsContent value="previousLinks">
@@ -65,7 +81,7 @@ const Index = () => {
   );
 };
 
-const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits }) => {
+const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits, onCreateLink }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
@@ -104,11 +120,7 @@ const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credit
     }
 
     // Update credits
-    if (freeSharesLeft > 0) {
-      updateCredits(credits, freeSharesLeft - 1);
-    } else {
-      updateCredits(credits - cost, freeSharesLeft);
-    }
+    onCreateLink();
 
     toast({
       title: "Share link(s) created",

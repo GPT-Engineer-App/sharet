@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { workspaces } from '../mockData';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Share, Plus, Copy, Eye, EyeOff, Trash2, CreditCard } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Share, Plus, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
@@ -31,13 +31,9 @@ const Index = () => {
           <CardHeader>
             <CardTitle>External Share</CardTitle>
             <div className="flex justify-between items-center mt-2">
-              {displayCredits > 0 ? (
-                <span>Credits: {credits.toFixed(2)} (-{cost})</span>
-              ) : (
-                <PaymentDialog onPaymentSuccess={updateCredits} />
-              )}
+              <span>Credits: {credits.toFixed(2)} (-{cost})</span>
               <span>Free shares left: {freeSharesLeft}</span>
-              {displayCredits > 0 && <PaymentDialog onPaymentSuccess={updateCredits} />}
+              <PaymentDialog onPaymentSuccess={(newCredits) => updateCredits(newCredits, freeSharesLeft)} />
             </div>
           </CardHeader>
           <CardContent>
@@ -52,6 +48,9 @@ const Index = () => {
                   setShareType={setShareType}
                   cardCount={cardCount}
                   setCardCount={setCardCount}
+                  credits={credits}
+                  freeSharesLeft={freeSharesLeft}
+                  updateCredits={updateCredits}
                 />
               </TabsContent>
               <TabsContent value="previousLinks">
@@ -65,18 +64,16 @@ const Index = () => {
   );
 };
 
-const NewShareForm = ({ shareType, setShareType }) => {
+const NewShareForm = ({ shareType, setShareType, cardCount, setCardCount, credits, freeSharesLeft, updateCredits }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
-  const { credits, freeSharesLeft, updateCredits } = useCredits();
+  const [selectedList, setSelectedList] = useState(null);
+  const [generatedUrls, setGeneratedUrls] = useState(null);
 
   const calculateCost = () => {
     if (freeSharesLeft > 0) return 0;
     return shareType === "card" ? 1 : Math.max(1, cardCount - 1);
   };
-
-  const [selectedList, setSelectedList] = useState(null);
-  const [generatedUrls, setGeneratedUrls] = useState(null);
 
   const handleCreateShare = () => {
     const cost = calculateCost();
@@ -89,8 +86,7 @@ const NewShareForm = ({ shareType, setShareType }) => {
       return;
     }
 
-    // Here you would typically call an API to create the share
-    // For now, we'll simulate generating URLs
+    // Simulate generating URLs
     if (shareType === "card") {
       const cardUrl = `https://example.com/share/card/${Date.now()}`;
       setGeneratedUrls({ cardUrl });
@@ -116,14 +112,6 @@ const NewShareForm = ({ shareType, setShareType }) => {
     });
   };
 
-  const handleListSelect = (listId) => {
-    const selected = workspaces
-      .flatMap(w => w.boards)
-      .flatMap(b => b.lists)
-      .find(l => l.id === listId);
-    setSelectedList(selected);
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
@@ -147,7 +135,7 @@ const NewShareForm = ({ shareType, setShareType }) => {
       {shareType === "list" && (
         <div className="mt-4">
           <Label htmlFor="listSelect">Select List</Label>
-          <Select onValueChange={(value) => console.log("Selected list:", value)}>
+          <Select onValueChange={(listId) => setSelectedList(workspaces.flatMap(w => w.boards).flatMap(b => b.lists).find(l => l.id === listId))}>
             <SelectTrigger id="listSelect">
               <SelectValue placeholder="Select a list" />
             </SelectTrigger>

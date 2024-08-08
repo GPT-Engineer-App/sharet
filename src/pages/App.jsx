@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TrelloConnect from '../components/TrelloConnect';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -13,6 +14,7 @@ import NewShareForm from '../components/NewShareForm';
 import PreviousLinks from '../components/PreviousLinks';
 
 const App = () => {
+  const navigate = useNavigate();
   const { credits, freeSharesLeft, updateCredits } = useCredits();
   const [shareType, setShareType] = useState("card");
   const [cardCount, setCardCount] = useState(1);
@@ -55,7 +57,12 @@ const App = () => {
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>External Share</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>External Share</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+                Back to Home
+              </Button>
+            </div>
             <div className="flex justify-between items-center mt-2">
               {!trelloData ? (
                 <TrelloConnect onConnect={setTrelloData} />

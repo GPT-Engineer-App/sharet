@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TrelloConnect from '../components/TrelloConnect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useCredits } from '../hooks/useCredits';
@@ -11,7 +11,7 @@ import { PaymentDialog } from '../components/PaymentDialog';
 import QRCode from 'qrcode.react';
 import NewShareForm from '../components/NewShareForm';
 import PreviousLinks from '../components/PreviousLinks';
-import { Link } from 'react-router-dom';
+import Introduction from './Introduction';
 
 const Index = () => {
   const { credits, freeSharesLeft, updateCredits } = useCredits();
@@ -51,71 +51,80 @@ const Index = () => {
     });
   };
 
+  const CardshareContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cardshare</CardTitle>
+        <div className="flex justify-between items-center mt-2">
+          {!trelloData ? (
+            <TrelloConnect onConnect={setTrelloData} />
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span>Connected as {trelloData.member.fullName}</span>
+              <Button variant="outline" size="sm" onClick={handleDisconnect}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Disconnect
+              </Button>
+            </div>
+          )}
+          {displayCredits > 0 ? (
+            <span>Credits: {displayCredits.toFixed(2)} (-{createdLinks})</span>
+          ) : (
+            <PaymentDialog onPaymentSuccess={(newCredits) => {
+              updateCredits(newCredits, freeSharesLeft);
+              setCreatedLinks(0);
+            }} />
+          )}
+          <span>Free shares left: {freeSharesLeft}</span>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {trelloData ? (
+          <Tabs defaultValue="newShare">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="newShare">New Share</TabsTrigger>
+              <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
+            </TabsList>
+            <TabsContent value="newShare">
+              <NewShareForm
+                shareType={shareType}
+                setShareType={setShareType}
+                cardCount={cardCount}
+                setCardCount={setCardCount}
+                credits={displayCredits}
+                freeSharesLeft={freeSharesLeft}
+                updateCredits={updateCredits}
+                onCreateLink={handleCreateLink}
+                trelloData={trelloData}
+                onShowQRCode={handleShowQRCode}
+              />
+            </TabsContent>
+            <TabsContent value="previousLinks">
+              <PreviousLinks onShowQRCode={handleShowQRCode} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <p className="text-center py-4">Connect to Trello to start creating share links.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
-      <div className="max-w-2xl mx-auto">
-        <Link to="/" className="block mb-4">
-          <Button variant="outline">
-            <Home className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-        </Link>
-        <Card>
-          <CardHeader>
-            <CardTitle>Cardshare</CardTitle>
-            <div className="flex justify-between items-center mt-2">
-              {!trelloData ? (
-                <TrelloConnect onConnect={setTrelloData} />
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <span>Connected as {trelloData.member.fullName}</span>
-                  <Button variant="outline" size="sm" onClick={handleDisconnect}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Disconnect
-                  </Button>
-                </div>
-              )}
-              {displayCredits > 0 ? (
-                <span>Credits: {displayCredits.toFixed(2)} (-{createdLinks})</span>
-              ) : (
-                <PaymentDialog onPaymentSuccess={(newCredits) => {
-                  updateCredits(newCredits, freeSharesLeft);
-                  setCreatedLinks(0);
-                }} />
-              )}
-              <span>Free shares left: {freeSharesLeft}</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {trelloData ? (
-              <Tabs defaultValue="newShare">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="newShare">New Share</TabsTrigger>
-                  <TabsTrigger value="previousLinks">Previous Links</TabsTrigger>
-                </TabsList>
-                <TabsContent value="newShare">
-                  <NewShareForm
-                    shareType={shareType}
-                    setShareType={setShareType}
-                    cardCount={cardCount}
-                    setCardCount={setCardCount}
-                    credits={displayCredits}
-                    freeSharesLeft={freeSharesLeft}
-                    updateCredits={updateCredits}
-                    onCreateLink={handleCreateLink}
-                    trelloData={trelloData}
-                    onShowQRCode={handleShowQRCode}
-                  />
-                </TabsContent>
-                <TabsContent value="previousLinks">
-                  <PreviousLinks onShowQRCode={handleShowQRCode} />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <p className="text-center py-4">Connect to Trello to start creating share links.</p>
-            )}
-          </CardContent>
-        </Card>
+      <div className="max-w-4xl mx-auto">
+        <Tabs defaultValue="introduction">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="introduction">Introduction</TabsTrigger>
+            <TabsTrigger value="tool">Cardshare Tool</TabsTrigger>
+          </TabsList>
+          <TabsContent value="introduction">
+            <Introduction />
+          </TabsContent>
+          <TabsContent value="tool">
+            <CardshareContent />
+          </TabsContent>
+        </Tabs>
       </div>
       {showQRCode && (
         <Dialog open={showQRCode} onOpenChange={setShowQRCode}>

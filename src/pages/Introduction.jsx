@@ -58,14 +58,8 @@ const Introduction = () => {
           </CardHeader>
           <CardContent>
             <p>We're confident you'll love the simplicity and security of Cardshare. That's why we're offering you 3 free shares to try out our tool. No credit card required!</p>
+            <p className="mt-4">To get started, switch to the "Cardshare Tool" tab above and connect your Trello account.</p>
           </CardContent>
-          <CardFooter>
-            <Link to="/app">
-              <Button>
-                Start Sharing Now
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
       </div>
     </div>
